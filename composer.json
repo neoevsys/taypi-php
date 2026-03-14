@@ -1,0 +1,25 @@
+{
+    "name": "taypi/taypi-php",
+    "description": "SDK oficial de TAYPI — Pagos QR interoperables para e-commerce en Perú",
+    "type": "library",
+    "license": "MIT",
+    "keywords": ["taypi", "pagos", "qr", "peru", "yape", "plin", "pasarela"],
+    "homepage": "https://taypi.pe",
+    "authors": [
+        {
+            "name": "NEO TECHNOLOGY PERÚ E.I.R.L.",
+            "email": "soporte@neotecperu.com"
+        }
+    ],
+    "require": {
+        "php": ">=7.4",
+        "ext-curl": "*",
+        "ext-json": "*"
+    },
+    "autoload": {
+        "psr-4": {
+            "Taypi\\": "src/"
+        }
+    },
+    "minimum-stability": "stable"
+}
