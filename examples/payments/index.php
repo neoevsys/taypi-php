@@ -17,7 +17,7 @@ require __DIR__ . '/../../vendor/autoload.php';
 $taypi = new Taypi\Taypi(
     'taypi_pk_test_TU_PUBLIC_KEY',
     'taypi_sk_test_TU_SECRET_KEY',
-    ['base_url' => 'https://dev.taypi.pe'],
+    ['base_url' => 'https://sandbox.taypi.pe'],
 );
 
 // ─── 1. Crear pago (retorna QR completo) ─────────────────

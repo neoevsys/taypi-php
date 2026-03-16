@@ -39,8 +39,7 @@ class Taypi
     /** Entornos permitidos */
     private const ENVIRONMENTS = [
         'https://app.taypi.pe',
-        'https://dev.taypi.pe',
-        'https://sandbox.taypi.pe',
+                'https://sandbox.taypi.pe',
     ];
 
     public function __construct(
@@ -57,7 +56,7 @@ class Taypi
             $baseHost = preg_replace('#/v1$#', '', $url);
             if (!in_array($baseHost, self::ENVIRONMENTS, true)) {
                 throw new TaypiException(
-                    'URL no permitida. Usa: app.taypi.pe, dev.taypi.pe o sandbox.taypi.pe',
+                    'URL no permitida. Usa: app.taypi.pe o sandbox.taypi.pe',
                     'INVALID_BASE_URL'
                 );
             }

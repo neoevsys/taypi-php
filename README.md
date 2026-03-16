@@ -126,7 +126,7 @@ if ($taypi->verifyWebhook($payload, $signature, $secret)) {
 $taypi = new Taypi\Taypi('pk', 'sk');
 
 // Desarrollo
-$taypi = new Taypi\Taypi('pk', 'sk', ['base_url' => 'https://dev.taypi.pe']);
+$taypi = new Taypi\Taypi('pk', 'sk', ['base_url' => 'https://sandbox.taypi.pe']);
 
 // Sandbox
 $taypi = new Taypi\Taypi('pk', 'sk', ['base_url' => 'https://sandbox.taypi.pe']);

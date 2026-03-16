@@ -20,7 +20,7 @@ require __DIR__ . '/../../vendor/autoload.php';
 $taypi = new Taypi\Taypi(
     'taypi_pk_test_TU_PUBLIC_KEY',   // Reemplaza con tu public key
     'taypi_sk_test_TU_SECRET_KEY',   // Reemplaza con tu secret key
-    ['base_url' => 'https://dev.taypi.pe'],
+    ['base_url' => 'https://sandbox.taypi.pe'],
 );
 
 // ─── Datos del pedido ─────────────────────────────────────
@@ -151,7 +151,7 @@ try {
 
 <?php if ($session_token): ?>
 <!-- TAYPI Checkout.js -->
-<script src="https://dev.taypi.pe/v1/checkout.js"></script>
+<script src="https://sandbox.taypi.pe/v1/checkout.js"></script>
 
 <script>
     Taypi.publicKey = '<?= htmlspecialchars($taypi->publicKey) ?>';
