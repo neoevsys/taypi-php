@@ -27,6 +27,9 @@ class Taypi
     /** @var string Clave pública (taypi_pk_...) */
     public string $publicKey;
 
+    /** @var bool Indica si el cliente está en modo sandbox (true) o producción (false) */
+    public bool $isSandbox;
+
     /** @var string Clave secreta (taypi_sk_...) — nunca se envía en requests */
     private string $secretKey;
 
@@ -39,7 +42,7 @@ class Taypi
     /** Entornos permitidos */
     private const ENVIRONMENTS = [
         'https://app.taypi.pe',
-                'https://sandbox.taypi.pe',
+        'https://sandbox.taypi.pe',
     ];
 
     public function __construct(
@@ -47,6 +50,24 @@ class Taypi
         string $secretKey,
         array $options = []
     ) {
+        // ── Validar formato de API keys ──
+        self::validateKeyFormat($publicKey, 'publicKey', 'taypi_pk_', 32);
+        self::validateKeyFormat($secretKey, 'secretKey', 'taypi_sk_', 64);
+
+        // ── Detectar ambiente desde las keys ──
+        $publicIsTest = str_starts_with($publicKey, 'taypi_pk_test_');
+        $secretIsTest = str_starts_with($secretKey, 'taypi_sk_test_');
+
+        if ($publicIsTest !== $secretIsTest) {
+            throw new TaypiException(
+                'Las keys no coinciden: una es de test y otra de producción. '
+                . 'Ambas deben ser del mismo ambiente (taypi_pk_test_ + taypi_sk_test_ o taypi_pk_live_ + taypi_sk_live_).',
+                'KEY_ENVIRONMENT_MISMATCH'
+            );
+        }
+
+        $isTestMode = $publicIsTest;
+
         $this->publicKey = $publicKey;
         $this->secretKey = $secretKey;
         $this->timeout = $options['timeout'] ?? 15;
@@ -56,13 +77,61 @@ class Taypi
             $baseHost = preg_replace('#/v1$#', '', $url);
             if (!in_array($baseHost, self::ENVIRONMENTS, true)) {
                 throw new TaypiException(
-                    'URL no permitida. Usa: app.taypi.pe o sandbox.taypi.pe',
+                    'URL no permitida. Usa: https://app.taypi.pe (producción) o https://sandbox.taypi.pe (sandbox).',
                     'INVALID_BASE_URL'
                 );
             }
+
+            // ── Validar consistencia key ↔ ambiente ──
+            $urlIsSandbox = $baseHost === self::ENVIRONMENTS[1];
+            if ($isTestMode && !$urlIsSandbox) {
+                throw new TaypiException(
+                    'Keys de test (taypi_pk_test_) solo funcionan con sandbox. '
+                    . 'Usa base_url => "https://sandbox.taypi.pe" o cambia a keys de producción (taypi_pk_live_).',
+                    'KEY_URL_MISMATCH'
+                );
+            }
+            if (!$isTestMode && $urlIsSandbox) {
+                throw new TaypiException(
+                    'Keys de producción (taypi_pk_live_) solo funcionan con producción. '
+                    . 'Usa base_url => "https://app.taypi.pe" o cambia a keys de test (taypi_pk_test_).',
+                    'KEY_URL_MISMATCH'
+                );
+            }
+
             $this->baseUrl = $baseHost;
         } else {
-            $this->baseUrl = self::ENVIRONMENTS[0]; // app.taypi.pe
+            // ── Auto-detectar ambiente desde el key ──
+            $this->baseUrl = $isTestMode ? self::ENVIRONMENTS[1] : self::ENVIRONMENTS[0];
+        }
+
+        $this->isSandbox = $isTestMode;
+    }
+
+    private static function validateKeyFormat(string $key, string $paramName, string $expectedPrefix, int $expectedTokenLength): void
+    {
+        if (empty($key) || !str_starts_with($key, $expectedPrefix)) {
+            throw new TaypiException(
+                "Formato de {$paramName} inválido. Debe iniciar con \"{$expectedPrefix}live_\" o \"{$expectedPrefix}test_\". Recibido: \"" . substr($key, 0, 20) . '..."',
+                'INVALID_KEY_FORMAT'
+            );
+        }
+
+        $afterPrefix = substr($key, strlen($expectedPrefix));
+        if (!str_starts_with($afterPrefix, 'live_') && !str_starts_with($afterPrefix, 'test_')) {
+            throw new TaypiException(
+                "Formato de {$paramName} inválido. Después de \"{$expectedPrefix}\" debe seguir \"live_\" o \"test_\".",
+                'INVALID_KEY_FORMAT'
+            );
+        }
+
+        $fullPrefix = $expectedPrefix . (str_starts_with($afterPrefix, 'live_') ? 'live_' : 'test_');
+        $token = substr($key, strlen($fullPrefix));
+        if (strlen($token) !== $expectedTokenLength) {
+            throw new TaypiException(
+                "Longitud de {$paramName} inválida. Se esperan {$expectedTokenLength} caracteres después de \"{$fullPrefix}\", se recibieron " . strlen($token) . '.',
+                'INVALID_KEY_FORMAT'
+            );
         }
     }
 
