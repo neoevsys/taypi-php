@@ -248,19 +248,23 @@ class Taypi
         $timestamp = (string) time();
         $body = $params !== null ? json_encode($params) : '';
 
-        // Firma HMAC-SHA256
-        $signaturePath = parse_url($path, PHP_URL_PATH);
-        $message = $timestamp . "\n" . $method . "\n" . $signaturePath . "\n" . $body;
-        $signature = hash_hmac('sha256', $message, $this->secretKey);
-
         $headers = [
             'Content-Type: application/json',
             'Accept: application/json',
             'Authorization: Bearer ' . $this->publicKey,
-            'Taypi-Signature: ' . $signature,
-            'Taypi-Timestamp: ' . $timestamp,
             'User-Agent: taypi-php/' . self::VERSION,
         ];
+
+        // GET /v1/checkout/sessions/{token} no requiere firma HMAC (solo Bearer)
+        $skipSignature = $method === 'GET' && str_contains($path, '/checkout/sessions/');
+
+        if (! $skipSignature) {
+            $signaturePath = parse_url($path, PHP_URL_PATH);
+            $message = $timestamp . "\n" . $method . "\n" . $signaturePath . "\n" . $body;
+            $signature = hash_hmac('sha256', $message, $this->secretKey);
+            $headers[] = 'Taypi-Signature: ' . $signature;
+            $headers[] = 'Taypi-Timestamp: ' . $timestamp;
+        }
 
         if ($idempotencyKey !== null) {
             $headers[] = 'Idempotency-Key: ' . $idempotencyKey;
