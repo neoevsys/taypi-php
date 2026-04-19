@@ -102,6 +102,37 @@ $result = $taypi->listPayments([
 $payment = $taypi->cancelPayment('uuid-del-pago', 'cancel-ORD-789');
 ```
 
+### Comercio y tiendas
+
+```php
+// Datos del comercio autenticado (tier, volumen usado, limite mensual)
+$merchant = $taypi->getMerchant();
+echo $merchant['business_name'];
+echo $merchant['monthly_volume_used'] . ' / ' . $merchant['monthly_volume_limit'];
+
+// Listar tiendas activas del comercio
+$stores = $taypi->listStores();
+foreach ($stores as $store) {
+    echo $store['name'] . ' — ' . $store['merchant_code'];
+}
+```
+
+### Checkout sessions (para checkout.js)
+
+```php
+// 1. Backend: crea la sesión y entrega solo el token al frontend
+$session = $taypi->createCheckoutSession([
+    'amount'    => '50.00',
+    'reference' => 'ORD-123',
+], 'ORD-123');
+$token = $session['checkout_token'];
+
+// 2. Frontend (checkout.js) o backend: lee los datos completos de la sesión
+$details = $taypi->getCheckoutSession($token);
+echo $details['qr_image'];   // SVG base64
+echo $details['merchant_name'];
+```
+
 ### Webhooks
 
 ```php

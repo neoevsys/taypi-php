@@ -153,6 +153,52 @@ class Taypi
         return $response['data'];
     }
 
+    /**
+     * Obtiene los datos de una sesión de checkout (QR, monto, estado, comercio).
+     * Usar después de createCheckoutSession() para mostrar el QR.
+     *
+     * Este endpoint NO requiere firma HMAC (solo Bearer + token opaco), pensado
+     * para checkout.js corriendo en el frontend.
+     *
+     * @param string $checkoutToken Token retornado por createCheckoutSession()
+     * @return array
+     * @throws TaypiException
+     */
+    public function getCheckoutSession(string $checkoutToken): array
+    {
+        $response = $this->get("/v1/checkout/sessions/{$checkoutToken}");
+
+        return $response['data'];
+    }
+
+    // ─── Comercio ────────────────────────────────────────────
+
+    /**
+     * Devuelve datos del comercio autenticado: tier, limite mensual, volumen usado, etc.
+     *
+     * @return array
+     * @throws TaypiException
+     */
+    public function getMerchant(): array
+    {
+        $response = $this->get('/api/v1/merchant');
+
+        return $response['data'];
+    }
+
+    /**
+     * Lista las tiendas activas del comercio autenticado.
+     *
+     * @return array
+     * @throws TaypiException
+     */
+    public function listStores(): array
+    {
+        $response = $this->get('/api/v1/stores');
+
+        return $response['data'];
+    }
+
     // ─── Payments ────────────────────────────────────────────
 
     /**
